@@ -19,11 +19,7 @@ app.use(cookieParser());
 app.use('/api/v1', routes);
 app.use('/test', (req, res) => res.send('test route'));
 
-connectDB().then(() => {
-  app.listen(process.env.PORT || 5000, () => {
-    console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);
-  });
-});
+export default app;
 
 
 // The entry point of the entire backend. It creates the Express app, registers middleware (CORS, JSON parser, cookie parser), mounts all routes, then calls connectDB() and starts listening on the port.
