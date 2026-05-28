@@ -1,32 +1,50 @@
 import "module-alias/register";
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import routes from "./routes";
+import connectDB from "./config/db";
+
 dotenv.config();
-import routes from './routes';
-import connectDB from './config/db';
+
+console.log("=== SERVER STARTING ===");
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("PORT:", process.env.PORT);
+console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
 
 const app = express();
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/api/v1', routes);
-app.use('/test', (req, res) => res.send('test route'));
+app.use("/api/v1", routes);
 
-const PORT = process.env.PORT || 5000;
-connectDB();
-
-app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
+app.get("/", (req, res) => {
+  res.send("Backend is running");
 });
 
+const PORT = Number(process.env.PORT) || 5000;
 
+async function start() {
+  try {
+    console.log("Connecting DB...");
+    await connectDB();
 
+    console.log("Starting Express...");
 
-// The entry point of the entire backend. It creates the Express app, registers middleware (CORS, JSON parser, cookie parser), mounts all routes, then calls connectDB() and starts listening on the port.
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on ${PORT}`);
+    });
+  } catch (err) {
+    console.error("STARTUP ERROR:", err);
+    process.exit(1);
+  }
+}
+
+start();
