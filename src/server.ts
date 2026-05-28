@@ -1,3 +1,4 @@
+import "module-alias/register";
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -5,7 +6,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 import routes from './routes';
 import connectDB from './config/db';
-
 
 const app = express();
 
