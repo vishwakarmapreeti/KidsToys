@@ -16,7 +16,7 @@ console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
 const app = express();
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  origin: process.env.CLIENT_URL,
   credentials: true,
 }));
 

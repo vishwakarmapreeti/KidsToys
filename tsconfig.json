@@ -14,7 +14,8 @@
 
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@config/*": ["config/*"]
     },
 
     "ignoreDeprecations": "6.0"

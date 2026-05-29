@@ -26,7 +26,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     let role: 'user' | 'admin' = 'user';
     if (adminSecret) {
-      if (adminSecret === process.env.ADMIN_SECRET) {
+      const trimmedSecret = String(adminSecret).trim();
+      const envSecret = String(process.env.ADMIN_SECRET).trim();
+      console.log('🔐 Admin Secret Debug:', {
+        received: `"${trimmedSecret}"`,
+        expected: `"${envSecret}"`,
+        receivedLength: trimmedSecret.length,
+        expectedLength: envSecret.length,
+        receivedChars: Array.from(trimmedSecret).map(c => `${c}(${c.charCodeAt(0)})`).join(', '),
+        expectedChars: Array.from(envSecret).map(c => `${c}(${c.charCodeAt(0)})`).join(', '),
+        match: trimmedSecret === envSecret,
+      });
+      if (trimmedSecret === envSecret) {
         role = 'admin';
       } else {
      
@@ -39,16 +50,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       name, email, password, phone, address, role,
     });
 
+    console.log('👤 User created:', { id: user._id, email: user.email });
 
     // Verification token banao
     const verifyToken = user.generateVerifyToken();
     await user.save();
-   
 
     const verifyURL = `${process.env.CLIENT_URL}/verify-email/${verifyToken}`;
-
+    console.log('🔗 Verify URL:', verifyURL);
 
     try {
+      console.log('📧 Starting email send process for:', user.email);
       await sendEmail({
         to: user.email,
         subject: 'Kids Toys — Verify Your Email',
@@ -68,10 +80,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           </div>
         `,
       });
+      console.log('✅ Email sent successfully!');
     
     } catch (emailError) {
-      
-      console.error('   Error message:', (emailError as Error).message);
+      console.error('❌ Email sending error:', (emailError as Error).message);
+      console.error('Stack:', (emailError as Error).stack);
     }
 
     res.status(201).json({

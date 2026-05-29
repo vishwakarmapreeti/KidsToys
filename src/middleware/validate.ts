@@ -15,7 +15,7 @@ export const validate = (schema: ZodSchema) => {
       next();
     } catch (error: any) {
       // Extract error messages from Zod validation
-      const errors = error.errors.map((err: any) => ({
+     const errors = error.issues.map((err: any) => ({
         path: err.path.join('.'),
         message: err.message,
       }));
