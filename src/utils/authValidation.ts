@@ -21,7 +21,8 @@ export const registerSchema = z.object({
       .min(6, '❌ Password must be at least 6 characters')
       .max(100, '❌ Password must be less than 100 characters'),
     phone: z.string()
-      .regex(/^[0-9]{10}$/, '❌ Phone must be a valid 10-digit number'),
+      .optional()
+      .refine((value) => !value || /^\+?[0-9]{10,15}$/.test(value), '❌ Phone must be a valid phone number (10-15 digits, optional +)'),
     address: addressSchema.optional(),
     adminSecret: z.string().optional(),
   }),

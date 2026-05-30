@@ -16,7 +16,7 @@ console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
 const app = express();
 
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: ['http://localhost:5173', 'http://localhost:3000','https://kids-toys-frontend.vercel.app'],
   credentials: true,
 }));
 
