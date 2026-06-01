@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Product from '@/models/Product';
+import Category from '@/models/Category';
 
-// @route  POST /api/products  (Admin)
+// ─── CREATE PRODUCT ──────────────────────────────────────
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
@@ -9,7 +11,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       category, brand, stock, ageGroup, tags, isFeatured,
     } = req.body;
 
-    // Multiple images from Cloudinary
     const images = (req.files as any[])?.map((f: any) => f.path) || [];
 
     const product = await Product.create({
@@ -26,8 +27,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-
-// @route  GET /api/products  (Public) — filter, search, sort, paginate
+// ─── GET ALL PRODUCTS ────────────────────────────────────
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
@@ -37,47 +37,74 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
     const query: any = { isActive: true };
 
-    // Search by keyword  search in any field: name, description, tags
+    if (category) {
+      const categoryStr = Array.isArray(category)
+        ? String(category[0])
+        : String(category);
+  console.log('1. categoryStr:', categoryStr);           // ← add karo
+  console.log('2. type:', typeof categoryStr);           // ← add karo
+
+      const isObjectId = /^[a-f\d]{24}$/i.test(categoryStr);
+  console.log('3. isObjectId:', isObjectId);   
+      if (isObjectId) {
+        query.category = new mongoose.Types.ObjectId(categoryStr);
+      } else {
+        // ✅ as any lagao — TypeScript error fix
+        console.log('4. Finding category by slug...');       
+        const categoryDoc = await (Category as any).findOne({
+          slug:     categoryStr,
+          isActive: true,
+        });
+ console.log('5. categoryDoc found:', categoryDoc);  
+        if (categoryDoc) {
+          query.category = categoryDoc._id;
+        } else {
+          // Category nahi mili — empty result, 500 nahi
+          res.json({
+            success:  true,
+            total:    0,
+            page:     1,
+            pages:    0,
+            products: [],
+          });
+          return;
+        }
+      }
+    }
+
     if (keyword) {
       query.$or = [
-        { name:        { $regex: keyword, $options: 'i' } },  //regex for case-insensitive search text search
-        { description: { $regex: keyword, $options: 'i' } },    //others are exact match search case insensitive search
-        { tags:        { $in: [new RegExp(keyword as string, 'i')] } },
+        { name:        { $regex: String(keyword), $options: 'i' } },
+        { description: { $regex: String(keyword), $options: 'i' } },
+        { tags:        { $in: [new RegExp(String(keyword), 'i')] } },
       ];
     }
 
-    
+    if (ageGroup) query.ageGroup   = String(ageGroup);
+    if (featured) query.isFeatured = featured === 'true';
 
-    // Filter by category
-    if (category)  query.category  = category;
-    if (ageGroup)  query.ageGroup  = ageGroup;
-    if (featured)  query.isFeatured = featured === 'true';
-
-    // Price range
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    // Sort options
     const sortOptions: any = {
-      newest:       { createdAt: -1 },
-      oldest:       { createdAt:  1 },
-      price_low:    { price:      1 },
-      price_high:   { price:     -1 },
-      top_rated:    { ratings:   -1 },
+      newest:     { createdAt: -1 },
+      oldest:     { createdAt:  1 },
+      price_low:  { price:      1 },
+      price_high: { price:     -1 },
+      top_rated:  { ratings:   -1 },
     };
-    const sortBy = sortOptions[sort as string] || { createdAt: -1 };
 
-    // Pagination
+    const sortBy   = sortOptions[sort as string] || { createdAt: -1 };
     const pageNum  = Number(page);
     const limitNum = Number(limit);
     const skip     = (pageNum - 1) * limitNum;
 
     const [products, total] = await Promise.all([
       Product.find(query)
-        .populate('category', 'name slug')   //   Gets category details.
+        .populate('category', 'name slug')
         .sort(sortBy)
         .skip(skip)
         .limit(limitNum),
@@ -85,75 +112,32 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     ]);
 
     res.json({
-      success:  true,
+      success: true,
       total,
-      page:     pageNum,
-      pages:    Math.ceil(total / limitNum),
+      page:    pageNum,
+      pages:   Math.ceil(total / limitNum),
       products,
     });
+
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
 };
 
-
-// @route  GET /api/products/:id  (Public)
+// ─── GET SINGLE PRODUCT ──────────────────────────────────
 export const getProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const product = await Product.findOne({
-      _id:      req.params.id,
-      isActive: true,
-    }).populate('category', 'name slug');
+    const paramId = req.params['id'] as string;  // ✅ explicit cast
 
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' });
+    if (!mongoose.Types.ObjectId.isValid(paramId)) {
+      res.status(400).json({ message: 'Invalid product ID' });
       return;
     }
 
-    res.json({ success: true, product });
-  } catch (error) {
-    res.status(500).json({ message: (error as Error).message });
-  }
-};
+    const id = new mongoose.Types.ObjectId(paramId);
 
-
-// @route  GET /api/products/slug/:slug  (Public)
-export const getProductBySlug = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const product = await Product.findOne({
-      slug:     req.params.slug,
-      isActive: true,
-    }).populate('category', 'name slug');
-
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' });
-      return;
-    }
-
-    res.json({ success: true, product });
-  } catch (error) {
-    res.status(500).json({ message: (error as Error).message });
-  }
-};
-
-
-// @route  PUT /api/products/:id  (Admin)
-export const updateProduct = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const updateData: any = { ...req.body };
-
-    if (req.files && (req.files as any[]).length > 0) {
-      updateData.images = (req.files as any[]).map((f: any) => f.path);
-    }
-
-    if (updateData.tags && typeof updateData.tags === 'string') {
-      updateData.tags = JSON.parse(updateData.tags);
-    }
-
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
+    const product = await Product.findOne(
+      { _id: id, isActive: true } as any
     ).populate('category', 'name slug');
 
     if (!product) {
@@ -167,12 +151,76 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+// ─── GET PRODUCT BY SLUG ─────────────────────────────────
+export const getProductBySlug = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const slug = req.params['slug'] as string;
 
-// @route  DELETE /api/products/:id  (Admin) — Soft delete
+    const product = await Product.findOne(
+      { slug, isActive: true } as any  // ✅ as any add karo
+    ).populate('category', 'name slug');
+
+    if (!product) {
+      res.status(404).json({ message: 'Product not found' });
+      return;
+    }
+
+    res.json({ success: true, product });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+};
+
+// ─── UPDATE PRODUCT ──────────────────────────────────────
+export const updateProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const paramId = req.params['id'] as string;  // ✅ explicit cast
+
+    if (!mongoose.Types.ObjectId.isValid(paramId)) {
+      res.status(400).json({ message: 'Invalid product ID' });
+      return;
+    }
+
+    const updateData: any = { ...req.body };
+
+    if (req.files && (req.files as any[]).length > 0) {
+      updateData.images = (req.files as any[]).map((f: any) => f.path);
+    }
+
+    if (updateData.tags && typeof updateData.tags === 'string') {
+      updateData.tags = JSON.parse(updateData.tags);
+    }
+
+  const product = await (Product as any).findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(paramId) },
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('category', 'name slug');
+
+    if (!product) {
+      res.status(404).json({ message: 'Product not found' });
+      return;
+    }
+
+
+    res.json({ success: true, product });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+};
+
+// ─── DELETE PRODUCT ──────────────────────────────────────
 export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
+    const paramId = req.params['id'] as string;  // ✅ explicit cast
+
+    if (!mongoose.Types.ObjectId.isValid(paramId)) {
+      res.status(400).json({ message: 'Invalid product ID' });
+      return;
+    }
+
+  const product = await (Product as any).findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(paramId) },
       { isActive: false },
       { new: true }
     );
@@ -188,13 +236,20 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// @route  GET /api/products/category/:catId  (Public)
+// ─── GET PRODUCTS BY CATEGORY ────────────────────────────
 export const getProductsByCategory = async (req: Request, res: Response): Promise<void> => {
   try {
+    const catId = req.params['catId'] as string;
+
+    if (!mongoose.Types.ObjectId.isValid(catId)) {
+      res.status(400).json({ message: 'Invalid category ID' });
+      return;
+    }
+
     const products = await Product.find({
-      category: req.params.catId,
+      category: new mongoose.Types.ObjectId(catId),  
       isActive: true,
-    }).populate('category', 'name slug');
+    } as any).populate('category', 'name slug');   
 
     res.json({ success: true, count: products.length, products });
   } catch (error) {

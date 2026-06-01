@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import {
   getProducts, getProduct, getProductBySlug, getProductsByCategory,
-} from '@/controllers/productController';
+} from '../../controllers/productController';
 
 const router = Router();
 

@@ -19,8 +19,8 @@
     "typescript": "^6.0.3"
   },
   "_moduleAliases": {
-    "@": "dist",
-    "@config": "dist/config"
+    "@": "src",
+    "@config": "src/config"
   },
   "dependencies": {
     "@vercel/node": "^4.0.0",

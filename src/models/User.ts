@@ -73,4 +73,6 @@ userSchema.methods.generateVerifyToken = function (): string {
   return token; // raw token email mein jaayega
 };
 
-export default mongoose.model<IUser>('User', userSchema);
+const User = (mongoose.models.User as mongoose.Model<IUser>) ?? mongoose.model<IUser>('User', userSchema);
+
+export default User;

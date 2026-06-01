@@ -47,4 +47,4 @@ categorySchema.pre('save', async function () {
   }
 });
 
-export default mongoose.model<ICategory>('Category', categorySchema);
+export default (mongoose.models.Category as mongoose.Model<ICategory>) || mongoose.model<ICategory>('Category', categorySchema);
