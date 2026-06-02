@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import Product from '@/models/Product';
-import Category from '@/models/Category';
+import Product from '../models/Product';
+import Category from '../models/Category';
 
 // ─── CREATE PRODUCT ──────────────────────────────────────
 export const createProduct = async (req: Request, res: Response): Promise<void> => {

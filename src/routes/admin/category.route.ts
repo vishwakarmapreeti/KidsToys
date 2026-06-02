@@ -2,9 +2,9 @@ import { Router } from 'express';
 import {
   createCategory, getCategories, getCategory,
   updateCategory, deleteCategory,
-} from '@/controllers/categoryController';
-import { protect, adminOnly } from '@/middleware/authMiddleware';
-import upload from '@/middleware/upload';
+} from '../../controllers/categoryController';
+import { protect, adminOnly } from '../../middleware/authMiddleware';
+import upload from '../../middleware/upload';
 
 const router = Router();
 

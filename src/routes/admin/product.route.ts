@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import {
   createProduct, updateProduct, deleteProduct,
-} from '@/controllers/productController';
-import { protect, adminOnly } from '@/middleware/authMiddleware';
-import upload from '@/middleware/upload';
+} from '../../controllers/productController';
+import { protect, adminOnly } from '../../middleware/authMiddleware';
+import upload from '../../middleware/upload';
 
 const router = Router();
 
