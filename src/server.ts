@@ -50,6 +50,10 @@ app.use("/api/v1", async (req, res, next) => {
 
 app.use("/api/v1", routes);
 
+app.use("/api/v1/ping",(req, res) => {
+  res.send("pong");
+});
+
 const PORT = Number(process.env.PORT) || 5000;
 
 async function start() {
