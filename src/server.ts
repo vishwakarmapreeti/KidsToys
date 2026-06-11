@@ -38,7 +38,6 @@ app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
-const PORT = Number(process.env.PORT) || 5002;
 app.use("/api/v1", async (req, res, next) => {
   try {
     await ensureDB();
@@ -55,6 +54,7 @@ app.use("/api/v1/ping",(req, res) => {
   res.send("pong");
 });
 
+const PORT = Number(process.env.PORT) || 5000;
 
 async function start() {
   try {
@@ -72,8 +72,8 @@ async function start() {
   }
 }
 
-// if (process.env.VERCEL !== "1") {
-// }
-start();
+if (process.env.VERCEL !== "1") {
+  start();
+}
 
 export default app;
