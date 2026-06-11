@@ -12,7 +12,7 @@ import { protect } from '../../middleware/authMiddleware';
 const router = Router();
 
 router.use(protect);
-
+console.log("Order Route Loaded");
 router.post('/',                       createOrder);        // Create 
 router.get('/my',                      getMyOrders);        // My orders
 router.get('/:id',                     getOrder);           // Single order

@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 5002;
 
 async function start() {
   try {

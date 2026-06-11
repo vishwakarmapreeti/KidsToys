@@ -117,8 +117,14 @@ export const createRazorpayOrder = async (req: AuthRequest, res: Response): Prom
       order,
     });
   } catch (error) {
-    res.status(500).json({ message: (error as Error).message });
-  }
+  console.error("Create Order Error:", error);
+
+  res.status(500).json({
+    success: false,
+    message: (error as Error).message,
+    error,
+  });
+}
 };
 
 // ─── VERIFY RAZORPAY PAYMENT ──────────────────────────────
