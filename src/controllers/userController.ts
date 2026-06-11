@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import mongoose from 'mongoose';
-import User from '@/models/User';
-import Order from '@/models/Order';
-import { AuthRequest } from '@/types/index';
+import User from '../models/User';
+import Order from '../models/Order';
+import { AuthRequest } from '../types';
 
 // ─── GET ALL USERS ────────────────────────────────────────
 // @route  GET /api/v1/admin/users

@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import Order from '@/models/Order';
-import Product from '@/models/Product';
-import User from '@/models/User';
-import { AuthRequest } from '@/types/index';
+import Order from '../models/Order';
+import Product from '../models/Product';
+import User from '../models/User';
+import { AuthRequest } from '../types/index';
 
 export const getDashboardStats = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
