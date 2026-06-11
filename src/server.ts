@@ -1,4 +1,3 @@
-import "module-alias/register";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -14,6 +13,18 @@ console.log("PORT:", process.env.PORT);
 console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
 
 const app = express();
+let dbPromise: Promise<unknown> | null = null;
+
+function ensureDB() {
+  if (!dbPromise) {
+    dbPromise = connectDB().catch((err) => {
+      dbPromise = null;
+      throw err;
+    });
+  }
+
+  return dbPromise;
+}
 
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000','https://kids-toys-frontend.vercel.app'],
@@ -23,18 +34,32 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/v1", routes);
-
 app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
 const PORT = Number(process.env.PORT) || 5002;
+app.use("/api/v1", async (req, res, next) => {
+  try {
+    await ensureDB();
+    next();
+  } catch (err) {
+    console.error("DB CONNECTION ERROR:", err);
+    res.status(500).json({ message: "Database connection failed" });
+  }
+});
+
+app.use("/api/v1", routes);
+
+app.use("/api/v1/ping",(req, res) => {
+  res.send("pong");
+});
+
 
 async function start() {
   try {
     console.log("Connecting DB...");
-    await connectDB();
+    await ensureDB();
 
     console.log("Starting Express...");
 
@@ -47,4 +72,8 @@ async function start() {
   }
 }
 
-start();
+if (process.env.VERCEL !== "1") {
+  start();
+}
+
+export default app;

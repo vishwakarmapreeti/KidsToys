@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import mongoose from 'mongoose';
-import Wishlist from '@/models/Wishlist';
-import { AuthRequest } from '@/types/index';
+import Wishlist from '../models/Wishlist';
+import { AuthRequest } from '../types';
 
 // ─── GET WISHLIST ─────────────────────────────────────────
 // @route  GET /api/v1/user/wishlist

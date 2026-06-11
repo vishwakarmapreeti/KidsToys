@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
-import Order from '@/models/Order';
-import Cart from '@/models/Cart';
-import Product from '@/models/Product';
-import razorpay from '@/config/razorpay';
-import { AuthRequest } from '@/types/index';
+import Order from '../models/Order';
+import Cart from '../models/Cart';
+import Product from '../models/Product';
+import getRazorpay from '../config/razorpay';
+import { AuthRequest } from '../types';
 
 // ─── CREATE ORDER ─────────────────────────────────────────
 // @route  POST /api/v1/user/orders
@@ -98,6 +98,8 @@ export const createRazorpayOrder = async (req: AuthRequest, res: Response): Prom
       res.status(400).json({ message: 'Order already paid' });
       return;
     }
+
+    const razorpay = getRazorpay();
 
     // Razorpay order banao
     const razorpayOrder = await razorpay.orders.create({

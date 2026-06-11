@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 import { Request, Response } from 'express';
-import User from '@/models/User';
-import generateToken from '@/utils/generateToken'
-import sendEmail from '@/utils/sendEmail';
-import { AuthRequest } from '@/types/index';
+import User from '../models/User';
+import generateToken from '../utils/generateToken'
+import sendEmail from '../utils/sendEmail';
+import { AuthRequest } from '../types';
 
 const cookieOptions = {
   httpOnly: true,

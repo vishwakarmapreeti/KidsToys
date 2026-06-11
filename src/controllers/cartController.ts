@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import mongoose from 'mongoose';
-import Cart from '@/models/Cart';
-import Product from '@/models/Product';
-import { AuthRequest } from '@/types/index';
+import Cart from '../models/Cart';
+import Product from '../models/Product';
+import { AuthRequest } from '../types';
 
 // ─── GET CART ────────────────────────────────────────────
 export const getCart = async (req: AuthRequest, res: Response): Promise<void> => {

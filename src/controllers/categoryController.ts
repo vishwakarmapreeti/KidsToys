@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import Category from '@/models/Category';
-import cloudinary from '@config/cloudinary';
+import Category from '../models/Category';
+import cloudinary from '../config/cloudinary';
 
 // @route  POST /api/categories  (Admin)
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
